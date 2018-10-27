@@ -2,7 +2,7 @@
 # @Date:   2018-10-23T14:15:03+02:00
 # @Email:  romain.jacquier@insa-rouen.fr
 # @Last modified by:   Romain Jacquier
-# @Last modified time: 2018-10-27T18:23:27+02:00
+# @Last modified time: 2018-10-27T20:39:44+02:00
 
 
 
@@ -179,8 +179,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # Variables
         self.index = 0
 
-
-
         # Launch recursive MinMax
         scores = []
         for action in gameState.getLegalActions(self.index):
@@ -205,6 +203,9 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if depthcount <= 0:
             return self.evaluationFunction(gameState)
 
+        if gameState.getLegalActions(index) == []:
+            return self.evaluationFunction(gameState)
+
         scores = []
         for action in gameState.getLegalActions(index):
             scores.append(self.recursiveGetScore(gameState.generateSuccessor(index, action), index, depthcount))
@@ -226,8 +227,57 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Variables
+        self.index = 0
+        alpha = -1000000
+        beta = 10000000
+        bestMove = None
+        # Launch recursive MinMax
+        scores = []
+        for action in gameState.getLegalActions(self.index):
+            scores.append(self.recursiveGetScore(gameState.generateSuccessor(self.index, action), self.index, self.depth, alpha, beta))
+            alpha = max(scores)
+        # Max highest layer.
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        # chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        chosenIndex = bestIndices[0] # Pick randomly among the best
+
+        return gameState.getLegalActions(0)[chosenIndex]
+
+
+    def recursiveGetScore(self, gameState, index, depthcount, alpha, beta):
+
+        # increase depth each time all agents are used. use index
+        index += 1
+        if index == gameState.getNumAgents():
+            index = 0
+            depthcount -= 1
+        #depthcount -= 1
+
+        if depthcount <= 0:
+            return self.evaluationFunction(gameState)
+
+
+        if gameState.getLegalActions(index) == []:
+            return self.evaluationFunction(gameState)
+        if index == 0:
+            v = -1000
+            for action in gameState.getLegalActions(index):
+                v = max(v, self.recursiveGetScore(gameState.generateSuccessor(index, action), index, depthcount, alpha, beta))
+
+                if v > beta:
+                    return v
+                alpha = max(alpha, v)
+            return v
+        else:
+            v = 100000
+            for action in gameState.getLegalActions(index):
+                v = min(v, self.recursiveGetScore(gameState.generateSuccessor(index, action), index, depthcount, alpha, beta)) # v =2
+                if v < alpha: # 2 < 3
+                    return v
+                beta = min(beta, v)
+            return v
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -242,6 +292,9 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
+
+
+
         util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState):
