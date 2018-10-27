@@ -1,3 +1,7 @@
+# Pre-Requirements
+
+* Python 2.7
+
 # Commands
 
 ## Reflex Agent
