@@ -2,7 +2,7 @@
 # @Date:   2018-10-23T14:15:03+02:00
 # @Email:  romain.jacquier@insa-rouen.fr
 # @Last modified by:   Romain Jacquier
-# @Last modified time: 2018-10-27T20:39:44+02:00
+# @Last modified time: 2018-10-30T14:41:57+01:00
 
 
 
@@ -286,16 +286,63 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
     def getAction(self, gameState):
         """
-          Returns the expectimax action using self.depth and self.evaluationFunction
+          Returns the minimax action from the current gameState using self.depth
+          and self.evaluationFunction.
 
-          All ghosts should be modeled as choosing uniformly at random from their
-          legal moves.
+          Here are some method calls that might be useful when implementing minimax.
+
+          gameState.getLegalActions(agentIndex):
+            Returns a list of legal actions for an agent
+            agentIndex=0 means Pacman, ghosts are >= 1
+
+          gameState.generateSuccessor(agentIndex, action):
+            Returns the successor game state after an agent takes an action
+
+          gameState.getNumAgents():
+            Returns the total number of agents in the game
         """
-        "*** YOUR CODE HERE ***"
+
+        # Variables
+        self.index = 0
+
+        # Launch recursive MinMax
+        scores = []
+        for action in gameState.getLegalActions(self.index):
+            scores.append(self.recursiveGetScore(gameState.generateSuccessor(self.index, action), self.index, self.depth))
+
+        # Max highest layer.
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        # chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        chosenIndex = bestIndices[0] # Pick randomly among the best
+
+        return gameState.getLegalActions(0)[chosenIndex]
+
+    def recursiveGetScore(self, gameState, index, depthcount):
+
+        # increase depth each time all agents are used.
+        index += 1
+        if index == gameState.getNumAgents():
+            index = 0
+            depthcount -= 1
+
+        if depthcount <= 0:
+            return self.evaluationFunction(gameState)
+
+        if gameState.getLegalActions(index) == []:
+            return self.evaluationFunction(gameState)
+
+        scores = []
+        for action in gameState.getLegalActions(index):
+            scores.append(self.recursiveGetScore(gameState.generateSuccessor(index, action), index, depthcount))
 
 
-
-        util.raiseNotDefined()
+        if index == 0:
+            scores.append(-10000)
+            return max(scores)
+        else:
+            proba = 1.0/len(scores)
+            return sum(map(lambda x:x*proba, scores))
 
 def betterEvaluationFunction(currentGameState):
     """
