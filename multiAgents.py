@@ -2,7 +2,7 @@
 # @Date:   2018-10-23T14:15:03+02:00
 # @Email:  romain.jacquier@insa-rouen.fr
 # @Last modified by:   Romain Jacquier
-# @Last modified time: 2018-10-30T14:41:57+01:00
+# @Last modified time: 2018-10-30T16:47:04+01:00
 
 
 
@@ -25,6 +25,8 @@ from game import Directions
 import random, util
 from time import *
 from game import Agent
+import math
+# import numpy as np
 
 class ReflexAgent(Agent):
     """
@@ -79,7 +81,7 @@ class ReflexAgent(Agent):
 
 
         scoreCalculated = 0
-        successorGameState = currentGameState.generatePacmanSuccessor(action)
+        successorGameState =  currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
@@ -352,7 +354,77 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # INITIALIAZE VALUES
+    scoreCalculated = 0
+
+
+    coefficient = [-1, 1, 2, -2, 1, -0.5, 1]
+    parameters =  [getScoreFood(currentGameState), getScoreGhost(currentGameState)[0], currentGameState.getScore(), currentGameState.getNumFood(), currentGameState.isWin(), getScoreCapsules(currentGameState),  getScoreGhost(currentGameState)[1]]
+    scoreCalculated += sum([a*b for a,b in zip(coefficient,parameters)])
+    # Update score with scorechanging from game.
+    scoreCalculated += currentGameState.data.scoreChange
+
+    return scoreCalculated
+
+def getScoreFood(currentGameState):
+    food = currentGameState.getFood()
+    pacmanPosition = currentGameState.getPacmanPosition()
+
+    # print currentGameState.getNumFood()
+    width = int(currentGameState.data.layout.width-1)
+    height = int(currentGameState.data.layout.height-1)
+
+    # find closest food
+    closestFood = [0,0,1000]
+    for i in range(1, width):
+        for j in range(1, height):
+            if food[i][j]:
+                distManhattan = manhattanDistance(pacmanPosition, (i,j))
+                if distManhattan < closestFood[2]:
+                    closestFood = [i, j, distManhattan]
+
+    return closestFood[2]
+
+def getScoreCapsules(currentGameState):
+    pacmanPosition = currentGameState.getPacmanPosition()
+    capsules = currentGameState.getCapsules()
+
+    # print currentGameState.getNumFood()
+    width = int(currentGameState.data.layout.width-1)
+    height = int(currentGameState.data.layout.height-1)
+
+    # find closest food
+    closestCapsule = [0,0,1000]
+    for i in range(1, width):
+        for j in range(1, height):
+            if (i,j) in capsules:
+                distManhattan = manhattanDistance(pacmanPosition, (i,j))
+                if distManhattan < closestCapsule[2]:
+                    closestCapsule = [i, j, distManhattan]
+    return closestCapsule[2]
+
+def getScoreGhost(currentGameState):
+    scoreGhost = 0.0
+    GhostStates = currentGameState.getGhostStates()
+    ScaredTimes = [ghostState.scaredTimer for ghostState in GhostStates]
+    pacmanPosition = currentGameState.getPacmanPosition()
+    closestGhostdistance = 1000
+    bestIndex = 0
+    index=-1
+    for ghost in GhostStates:
+        index +=1
+        if manhattanDistance(pacmanPosition, ghost.getPosition()) < closestGhostdistance:
+            closestGhostdistance = manhattanDistance(pacmanPosition, ghost.getPosition())
+            bestIndex = index
+    if closestGhostdistance > 5:
+        closestGhostdistance = 0
+    return closestGhostdistance, ScaredTimes[bestIndex]
+
+# MAYBE LATER
+def manhattanDistanceWithWall(pos1, pos2, walls):
+    currentGameState.getWalls()
+    pass
 
 # Abbreviation
 better = betterEvaluationFunction
